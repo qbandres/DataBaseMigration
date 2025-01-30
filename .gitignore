@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual Environment
+env/
+venv/
+.venv/
+
+# Configuración específica del entorno
+.env
+*.env.*
+
+# Logs
+*.log
+*.log.*
+
+# Archivos creados por el editor/IDE
+.vscode/
+.idea/
+*.swp
+*~
+*.bak
+*.tmp
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Caches de pytest
+.cache/
+
+# Archivos de testing
+.coverage
+.tox/
+.nox/
+
+# Archivos generados por herramientas
+migrations/
+*.egg-info/
+dist/
+build/
+
+# Node.js (si trabajas con frontend en la misma repo)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Otros
+*.lock

@@ -1,0 +1,96 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+from sqlalchemy import create_engine  # Importar create_engine para conexiones a la BD
+
+def create_tab(tab_control, db_credentials):
+    """Crea la pestaña de conexión a la base de datos."""
+    tab = ttk.Frame(tab_control)
+    tab_control.add(tab, text='Conexión')
+
+    ttk.Label(tab, text="Tipo de Base de Datos:").grid(row=0, column=0, padx=10, pady=5)
+    db_type = tk.StringVar(value="postgres")
+    db_credentials["db_type"] = db_type  # Guardar en las credenciales
+
+    postgres_radio = ttk.Radiobutton(tab, text="PostgreSQL", variable=db_type, value="postgres", command=lambda: update_port())
+    mysql_radio = ttk.Radiobutton(tab, text="MySQL", variable=db_type, value="mysql", command=lambda: update_port())
+    postgres_radio.grid(row=0, column=1, sticky="w")
+    mysql_radio.grid(row=0, column=2, sticky="w")
+
+    ttk.Label(tab, text="Host (Render URL):").grid(row=1, column=0, padx=10, pady=5)
+    host_entry = ttk.Entry(tab, width=40)
+    host_entry.grid(row=1, column=1, columnspan=2)
+    host_entry.insert(0, "localhost")  # Valor por defecto
+
+    ttk.Label(tab, text="Puerto:").grid(row=2, column=0, padx=10, pady=5)
+    port_entry = ttk.Entry(tab, width=30)
+    port_entry.grid(row=2, column=1)
+    port_entry.insert(0, "5432")
+
+    ttk.Label(tab, text="Usuario:").grid(row=3, column=0, padx=10, pady=5)
+    user_entry = ttk.Entry(tab, width=30)
+    user_entry.grid(row=3, column=1)
+
+    ttk.Label(tab, text="Contraseña:").grid(row=4, column=0, padx=10, pady=5)
+    password_entry = ttk.Entry(tab, width=30, show="*")
+    password_entry.grid(row=4, column=1)
+
+    ttk.Label(tab, text="Base de Datos:").grid(row=5, column=0, padx=10, pady=5)
+    db_entry = ttk.Entry(tab, width=30)
+    db_entry.grid(row=5, column=1)
+
+    def update_port():
+        """Actualiza el puerto según el tipo de base de datos seleccionado."""
+        port_entry.delete(0, tk.END)
+        port_entry.insert(0, "3306" if db_type.get() == "mysql" else "5432")
+
+    def test_connection():
+        """Prueba la conexión a la base de datos y actualiza db_credentials."""
+        host = host_entry.get()
+        port = port_entry.get()
+        user = user_entry.get()
+        password = password_entry.get()
+        database = db_entry.get()
+
+        # Validar campos obligatorios
+        if not host:
+            messagebox.showerror("Error", "El campo 'Host' no puede estar vacío.")
+            return
+        if not port:
+            messagebox.showerror("Error", "El campo 'Puerto' no puede estar vacío.")
+            return
+        if not user:
+            messagebox.showerror("Error", "El campo 'Usuario' no puede estar vacío.")
+            return
+        if not password:
+            messagebox.showerror("Error", "El campo 'Contraseña' no puede estar vacío.")
+            return
+        if not database:
+            messagebox.showerror("Error", "El campo 'Base de Datos' no puede estar vacío.")
+            return
+
+        try:
+            port = int(port)  # Asegurarse de que el puerto sea un entero
+
+            # Crear la conexión según el tipo de base de datos
+            if db_type.get() == "postgres":
+                engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
+            elif db_type.get() == "mysql":
+                engine = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}')
+
+            # Probar conexión
+            conn = engine.connect()
+            conn.close()
+
+            # Actualizar db_credentials
+            db_credentials["host"] = host
+            db_credentials["port"] = port
+            db_credentials["user"] = user
+            db_credentials["password"] = password
+            db_credentials["database"] = database
+
+            messagebox.showinfo("Éxito", "Conectado a la base de datos correctamente.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo conectar: {str(e)}")
+
+    connect_button = ttk.Button(tab, text="Probar Conexión", command=test_connection)
+    connect_button.grid(row=6, column=1, pady=10)
