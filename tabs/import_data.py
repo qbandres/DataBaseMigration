@@ -8,9 +8,7 @@ from sqlalchemy.sql import text
 # Declaración global para almacenar la configuración de columnas
 column_config = {}
 
-
-
-def create_tab(tab_control, db_credentials):
+def create_tab(tab_control, db_credentials, update_file_info):
     """Crea la pestaña de importación de datos."""
     tab = ttk.Frame(tab_control)
     tab_control.add(tab, text='Importar Datos')
@@ -38,7 +36,13 @@ def create_tab(tab_control, db_credentials):
 
                 # Mostrar mensaje de éxito
                 size_mb = os.path.getsize(file_path) / (1024 * 1024)
-                messagebox.showinfo("Éxito", f"Archivo cargado correctamente.\nTamaño: {size_mb:.2f} MB\nRegistros: {len(df)}")
+                records = len(df)
+                columns = len(df.columns)
+
+                # Actualizar los detalles del archivo en el cuadro informativo
+                update_file_info(size_mb, records, columns)
+
+                messagebox.showinfo("Éxito", f"Archivo cargado correctamente.\nTamaño: {size_mb:.2f} MB\nRegistros: {records}\nColumnas: {columns}")
                 configure_columns()
             except Exception as e:
                 messagebox.showerror("Error", f"Falló la carga del archivo: {e}")

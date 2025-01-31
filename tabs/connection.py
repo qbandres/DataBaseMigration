@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from sqlalchemy import create_engine  # Importar create_engine para conexiones a la BD
 
-def create_tab(tab_control, db_credentials):
+def create_tab(tab_control, db_credentials, update_connection_status):
     """Crea la pestaña de conexión a la base de datos."""
     tab = ttk.Frame(tab_control)
     tab_control.add(tab, text='Conexión')
@@ -87,9 +87,15 @@ def create_tab(tab_control, db_credentials):
             db_credentials["user"] = user
             db_credentials["password"] = password
             db_credentials["database"] = database
+            db_credentials["connected"] = True  # Marcar como conectado
+
+            # Actualizar el estado de la conexión en el cuadro informativo
+            update_connection_status()
 
             messagebox.showinfo("Éxito", "Conectado a la base de datos correctamente.")
         except Exception as e:
+            db_credentials["connected"] = False  # Marcar como desconectado
+            update_connection_status()
             messagebox.showerror("Error", f"No se pudo conectar: {str(e)}")
 
     connect_button = ttk.Button(tab, text="Probar Conexión", command=test_connection)
