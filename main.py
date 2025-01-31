@@ -52,12 +52,18 @@ def main():
             port_var.set(f"Puerto: {db_credentials['port']}")
             user_var.set(f"Usuario: {db_credentials['user']}")
             db_var.set(f"Base de Datos: {db_credentials['database']}")
+            # Activar pestaña de Importar Datos
+            tab_control.tab(1, state="normal")
+
+
         else:
             connection_status.set("Desconectado")
             host_var.set("Host: -")
             port_var.set("Puerto: -")
             user_var.set("Usuario: -")
             db_var.set("Base de Datos: -")
+            # Desactivar pestaña de Importar Datos
+            tab_control.tab(1, state="disabled")
 
     # Función para actualizar los detalles del archivo
     def update_file_info(size_mb, records, columns):
@@ -68,6 +74,9 @@ def main():
     # Crear pestañas y pasar las funciones de actualización
     connection.create_tab(tab_control, db_credentials, update_connection_status)
     import_data.create_tab(tab_control, db_credentials, update_file_info)
+
+    # Desactivar pestaña de importar datos al inicio
+    tab_control.tab(1, state="disabled")
 
     root.mainloop()
 
