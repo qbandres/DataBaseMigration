@@ -4,7 +4,7 @@ from tabs import connection, import_data  # Asegúrate de importar correctamente
 
 def main():
     root = tk.Tk()
-    root.geometry("800x600")
+    root.geometry("900x600")
     root.title("Herramienta de Migración de Base de Datos")
 
     tab_control = ttk.Notebook(root)
