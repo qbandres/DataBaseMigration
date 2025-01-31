@@ -1,6 +1,14 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 from sqlalchemy import create_engine  # Importar create_engine para conexiones a la BD
+import logging
+
+# Configuración de logging
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 def create_tab(tab_control, db_credentials, update_connection_status):
     """Crea la pestaña de conexión a la base de datos."""
@@ -38,10 +46,22 @@ def create_tab(tab_control, db_credentials, update_connection_status):
     db_entry = ttk.Entry(tab, width=30)
     db_entry.grid(row=5, column=1)
 
+    # Etiqueta para mostrar mensajes informativos
+    info_label = ttk.Label(tab, text="", foreground="green", wraplength=400, justify="left")
+    info_label.grid(row=7, column=0, columnspan=3, padx=10, pady=10, sticky="w")
+
     def update_port():
         """Actualiza el puerto según el tipo de base de datos seleccionado."""
         port_entry.delete(0, tk.END)
         port_entry.insert(0, "3306" if db_type.get() == "mysql" else "5432")
+
+    def display_message(message, level="info"):
+        """Muestra mensajes en la etiqueta informativa y los registra en el archivo de logs."""
+        info_label.config(text=message)
+        if level == "info":
+            logging.info(message)
+        elif level == "error":
+            logging.error(message)
 
     def test_connection():
         """Prueba la conexión a la base de datos y actualiza db_credentials."""
@@ -53,19 +73,19 @@ def create_tab(tab_control, db_credentials, update_connection_status):
 
         # Validar campos obligatorios
         if not host:
-            messagebox.showerror("Error", "El campo 'Host' no puede estar vacío.")
+            display_message("Fallo de conexión: El campo 'Host' no puede estar vacío.", level="error")
             return
         if not port:
-            messagebox.showerror("Error", "El campo 'Puerto' no puede estar vacío.")
+            display_message("Fallo de conexión: El campo 'Puerto' no puede estar vacío.", level="error")
             return
         if not user:
-            messagebox.showerror("Error", "El campo 'Usuario' no puede estar vacío.")
+            display_message("Fallo de conexión: El campo 'Usuario' no puede estar vacío.", level="error")
             return
         if not password:
-            messagebox.showerror("Error", "El campo 'Contraseña' no puede estar vacío.")
+            display_message("Fallo de conexión: El campo 'Contraseña' no puede estar vacío.", level="error")
             return
         if not database:
-            messagebox.showerror("Error", "El campo 'Base de Datos' no puede estar vacío.")
+            display_message("Fallo de conexión: El campo 'Base de Datos' no puede estar vacío.", level="error")
             return
 
         try:
@@ -92,11 +112,11 @@ def create_tab(tab_control, db_credentials, update_connection_status):
             # Actualizar el estado de la conexión en el cuadro informativo
             update_connection_status()
 
-            messagebox.showinfo("Éxito", "Conectado a la base de datos correctamente.")
+            display_message(f"Conexión exitosa a {db_type.get()} - Host: {host}, Base de Datos: {database}", level="info")
         except Exception as e:
             db_credentials["connected"] = False  # Marcar como desconectado
             update_connection_status()
-            messagebox.showerror("Error", f"No se pudo conectar: {str(e)}")
+            display_message(f"Fallo de conexión: {str(e)}", level="error")
 
     connect_button = ttk.Button(tab, text="Probar Conexión", command=test_connection)
     connect_button.grid(row=6, column=1, pady=10)
