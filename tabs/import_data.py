@@ -202,7 +202,11 @@ def create_tab(tab_control, db_credentials, update_file_info):
                 elif config["type"].get() == "VARCHAR":
                     df[column] = df[column].astype(str)
 
-            engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
+            #Aqui es donde s selecciona que motor usar para la importación
+            if db_credentials["db_type"].get() == "postgres":
+                engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
+            elif db_credentials["db_type"].get() == "mysql":
+                engine = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}')
             df.to_sql(table_name, engine, if_exists='append', index=False)
 
             status_label.config(text="Importación exitosa", foreground="green")
