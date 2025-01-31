@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import pandas as pd
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, types
 from sqlalchemy.sql import text
 
 # Declaración global para almacenar la configuración de columnas
@@ -41,8 +41,6 @@ def create_tab(tab_control, db_credentials, update_file_info):
 
                 # Actualizar los detalles del archivo en el cuadro informativo
                 update_file_info(size_mb, records, columns)
-
-                messagebox.showinfo("Éxito", f"Archivo cargado correctamente.\nTamaño: {size_mb:.2f} MB\nRegistros: {records}\nColumnas: {columns}")
                 configure_columns()
             except Exception as e:
                 messagebox.showerror("Error", f"Falló la carga del archivo: {e}")
@@ -50,9 +48,23 @@ def create_tab(tab_control, db_credentials, update_file_info):
     browse_button = ttk.Button(tab, text="📂 Examinar", command=browse_file)
     browse_button.grid(row=0, column=3, padx=5, pady=5)
 
-    # Tabla para configurar columnas
+    # Marco principal con Scrollbar
     columns_frame = ttk.LabelFrame(tab, text="Configuración de Columnas")
     columns_frame.grid(row=1, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+    canvas = tk.Canvas(columns_frame)
+    scrollbar = ttk.Scrollbar(columns_frame, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
 
     # Inicializar variables globales al inicio del script o del método donde corresponda
     table_name_entry = None
@@ -63,17 +75,17 @@ def create_tab(tab_control, db_credentials, update_file_info):
         nonlocal table_name_entry, reset_button
 
         # Limpiar cualquier configuración previa en el marco
-        for widget in columns_frame.winfo_children():
+        for widget in scrollable_frame.winfo_children():
             widget.destroy()
 
         if df is None:
             messagebox.showerror("Error", "No se ha cargado ningún archivo.")
             return
 
-        ttk.Label(columns_frame, text="Columna").grid(row=0, column=0, padx=5, pady=5)
-        ttk.Label(columns_frame, text="Tipo de Dato").grid(row=0, column=1, padx=5, pady=5)
-        ttk.Label(columns_frame, text="Primary Key").grid(row=0, column=2, padx=5, pady=5)
-        ttk.Label(columns_frame, text="Permitir NULL").grid(row=0, column=3, padx=5, pady=5)
+        ttk.Label(scrollable_frame, text="Columna").grid(row=0, column=0, padx=5, pady=5)
+        ttk.Label(scrollable_frame, text="Tipo de Dato").grid(row=0, column=1, padx=5, pady=5)
+        ttk.Label(scrollable_frame, text="Primary Key").grid(row=0, column=2, padx=5, pady=5)
+        ttk.Label(scrollable_frame, text="Permitir NULL").grid(row=0, column=3, padx=5, pady=5)
 
         config_widgets = []  # Lista para almacenar los widgets configurables
 
@@ -86,21 +98,21 @@ def create_tab(tab_control, db_credentials, update_file_info):
                 }
 
             # Etiqueta para el nombre de la columna
-            ttk.Label(columns_frame, text=column).grid(row=i + 1, column=0, padx=5, pady=5)
+            ttk.Label(scrollable_frame, text=column).grid(row=i + 1, column=0, padx=5, pady=5)
 
             # Selector de tipo de dato
-            type_menu = ttk.Combobox(columns_frame, textvariable=column_config[column]["type"], values=[
+            type_menu = ttk.Combobox(scrollable_frame, textvariable=column_config[column]["type"], values=[
                 "INT", "VARCHAR", "DATE", "TIMESTAMP", "FLOAT", "BOOLEAN", "TEXT"], state="readonly")
             type_menu.grid(row=i + 1, column=1, padx=5, pady=5)
             config_widgets.append(type_menu)
 
             # Checkbutton para Primary Key
-            pk_check = ttk.Checkbutton(columns_frame, variable=column_config[column]["primary_key"])
+            pk_check = ttk.Checkbutton(scrollable_frame, variable=column_config[column]["primary_key"])
             pk_check.grid(row=i + 1, column=2, padx=5, pady=5)
             config_widgets.append(pk_check)
 
             # Checkbutton para Permitir NULL
-            null_check = ttk.Checkbutton(columns_frame, variable=column_config[column]["nullable"])
+            null_check = ttk.Checkbutton(scrollable_frame, variable=column_config[column]["nullable"])
             null_check.grid(row=i + 1, column=3, padx=5, pady=5)
             config_widgets.append(null_check)
 
@@ -153,10 +165,12 @@ def create_tab(tab_control, db_credentials, update_file_info):
                 return
 
             try:
-                # Convertir columnas con tipo DATE
+                # Convertir columnas según los tipos seleccionados
                 for column, config in column_config.items():
                     if config["type"].get() == "DATE":
                         df[column] = pd.to_datetime(df[column]).dt.date  # Convertir a solo fecha
+                    elif config["type"].get() == "VARCHAR":
+                        df[column] = df[column].astype(str)  # Convertir a texto
 
                 # Crear tabla
                 columns = [f"{column} {config['type'].get()} {'PRIMARY KEY' if config['primary_key'].get() else ''} {'NOT NULL' if not config['nullable'].get() else ''}"
@@ -165,7 +179,21 @@ def create_tab(tab_control, db_credentials, update_file_info):
                 engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
                 with engine.connect() as conn:
                     conn.execute(text(create_table_query))
-                df.to_sql(table_name, engine, if_exists='append', index=False)
+
+                # Definir tipos de datos para SQLAlchemy
+                dtype_mapping = {
+                    "INT": types.INTEGER,
+                    "VARCHAR": types.String,
+                    "DATE": types.Date,
+                    "TIMESTAMP": types.DateTime,
+                    "FLOAT": types.Float,
+                    "BOOLEAN": types.Boolean,
+                    "TEXT": types.Text,
+                }
+                dtype = {column: dtype_mapping[config["type"].get()] for column, config in column_config.items()}
+
+                # Importar datos con los tipos de datos forzados
+                df.to_sql(table_name, engine, if_exists='append', index=False, dtype=dtype)
                 messagebox.showinfo("Éxito", f"Datos importados correctamente a la tabla '{table_name}'.")
             except Exception as e:
                 messagebox.showerror("Error", f"Falló la importación: {e}")
