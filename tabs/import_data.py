@@ -37,6 +37,11 @@ def create_tab(tab_control, db_credentials, update_file_info):
     interaction_label = ttk.Label(tab, text="", foreground="green")
     interaction_label.grid(row=5, column=0, columnspan=5, padx=10, pady=5)
 
+    def exit_program():
+        """Cierra la aplicación"""
+        logging.info("Aplicación cerrada por el usuario")
+        tab_control.winfo_toplevel().destroy()
+
     def browse_file():
         """Selecciona y carga un archivo Excel o CSV."""
         nonlocal df
@@ -209,5 +214,10 @@ def create_tab(tab_control, db_credentials, update_file_info):
             interaction_label.config(text=f"Error en importación: {str(e)}", foreground="red")
             logging.error(f"Error al importar datos: {str(e)}")
 
+    # Botones de acción
     import_button = ttk.Button(tab, text="Importar Datos", command=import_data)
     import_button.grid(row=3, column=2, padx=5, pady=5)
+
+    # Botón de salida
+    exit_button = ttk.Button(tab, text="Salir", command=exit_program)
+    exit_button.grid(row=3, column=3, padx=5, pady=5)
