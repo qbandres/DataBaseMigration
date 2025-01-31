@@ -25,17 +25,25 @@ DataBaseMigration/
 	•	Python 3.8+
 	•	Dependencias (instalar con pip install -r requirements.txt):
 
-    et_xmlfile==2.0.0
-    numpy==2.2.2
-    openpyxl==3.1.5
-    pandas==2.2.3
-    psycopg2-binary==2.9.10
-    python-dateutil==2.9.0.post0
-    pytz==2024.2
-    six==1.17.0
-    SQLAlchemy==2.0.37
-    typing_extensions==4.12.2
-    tzdata==2025.1
+		altgraph==0.17.4
+		et_xmlfile==2.0.0
+		macholib==1.16.3
+		modulegraph==0.19.6
+		mysql-connector-python==9.2.0
+		numpy==2.2.2
+		openpyxl==3.1.5
+		packaging==24.2
+		pandas==2.2.3
+		psycopg2-binary==2.9.10
+		pyinstaller==6.11.1
+		pyinstaller-hooks-contrib==2025.0
+		python-dateutil==2.9.0.post0
+		pytz==2024.2
+		setuptools==75.8.0
+		six==1.17.0
+		SQLAlchemy==2.0.37
+		typing_extensions==4.12.2
+		tzdata==2025.1
 
 🗄️ Conexión a la Base de Datos
 	1.	Definir los datos de conexión (host, puerto, usuario, contraseña y nombre de la base de datos).
@@ -53,6 +61,9 @@ DataBaseMigration/
 	•	Exportación de datos desde la base de datos a archivos CSV/Excel.
 	•	Soporte para más tipos de bases de datos.
 	•	Mejor manejo de errores y logs.
+
+Para pyinstaller usar
+pyinstaller --onefile --windowed --icon=icon.icns --name=DataBaseMigration main.py
 
 📄 Licencia
 
