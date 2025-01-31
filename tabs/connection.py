@@ -36,6 +36,7 @@ def create_tab(tab_control, db_credentials, update_connection_status):
     ttk.Label(tab, text="Usuario:").grid(row=3, column=0, padx=10, pady=5)
     user_entry = ttk.Entry(tab, width=30)
     user_entry.grid(row=3, column=1)
+    user_entry.insert(0, "postgres")
 
     ttk.Label(tab, text="Contraseña:").grid(row=4, column=0, padx=10, pady=5)
     password_entry = ttk.Entry(tab, width=30, show="*")
@@ -49,10 +50,18 @@ def create_tab(tab_control, db_credentials, update_connection_status):
     info_label = ttk.Label(tab, text="", foreground="green", wraplength=400, justify="left")
     info_label.grid(row=7, column=0, columnspan=3, padx=10, pady=10, sticky="w")
 
+    #Aqui actualizamos los valores del puerto y tambien aprobechamos para lel username
     def update_port():
-        """Actualiza el puerto según el tipo de base de datos seleccionado."""
+        """Actualiza el puerto y el usuario según el tipo de base de datos seleccionado."""
         port_entry.delete(0, tk.END)
-        port_entry.insert(0, "3306" if db_type.get() == "mysql" else "5432")
+        user_entry.delete(0, tk.END)
+
+        if db_type.get() == "mysql":
+            port_entry.insert(0, "3306")
+            user_entry.insert(0, "root")  # Usuario por defecto en MySQL
+        else:
+            port_entry.insert(0, "5432")
+            user_entry.insert(0, "postgres")  # Usuario por defecto en PostgreSQL
 
     def display_message(message, level="info"):
         """Muestra mensajes en la etiqueta informativa y los registra en el archivo de logs."""
