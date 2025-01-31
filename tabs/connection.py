@@ -3,10 +3,9 @@ from tkinter import ttk
 from sqlalchemy import create_engine  # Importar create_engine para conexiones a la BD
 import logging
 
-# Configuración de logging
+# Configuración de logging que NO guarda en un archivo
 logging.basicConfig(
-    filename='app.log',
-    level=logging.INFO,
+    level=logging.INFO,  # Sigue permitiendo mostrar mensajes en la interfaz
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
